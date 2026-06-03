@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     model: 'gpt-4o',
     messages,
     tools: [trendSearchTool],
-    tool_choice: { type: 'function', function: { name: 'search_tiktok_trends' } },
+    tool_choice: 'auto',
   })
 
   const firstChoice = firstResponse.choices[0].message

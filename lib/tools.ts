@@ -89,10 +89,18 @@ export async function executeTool(
   const days = args.days ?? 30
 
   try {
-    const [tiktokResults, douyinResults] = await Promise.all([
-      tavilySearch(tiktokQuery, depth, days),
-      tavilySearch(douyinQuery, depth, days),
+    // 30일 이내 먼저 검색, 결과 없으면 전체 검색으로 fallback
+    let [tiktokResults, douyinResults] = await Promise.all([
+      tavilySearch(tiktokQuery, depth, 30),
+      tavilySearch(douyinQuery, depth, 30),
     ])
+
+    if (tiktokResults.length === 0 && douyinResults.length === 0) {
+      ;[tiktokResults, douyinResults] = await Promise.all([
+        tavilySearch(tiktokQuery, depth, days),
+        tavilySearch(douyinQuery, depth, days),
+      ])
+    }
 
     const allResults = [...tiktokResults, ...douyinResults]
     if (allResults.length === 0) return '검색 결과 없음'
