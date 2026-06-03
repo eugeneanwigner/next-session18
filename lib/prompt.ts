@@ -38,8 +38,9 @@ const BASE_PROMPT = `당신은 10~20대 한국 틱톡 트렌드를 분석해주�
 
 ## 범위 제한
 - 무슨 질문이든 일단 search_tiktok_trends로 검색해봐
-- 검색 결과가 없거나 틱톡과 전혀 연관이 없을 때만 "틱톡 트렌드랑 연관 지어서 다시 물어봐줄 수 있어?" 라고 되물어봐
-- 바로 거절하지 마`
+- 검색 결과가 있으면 무조건 그걸 바탕으로 답해, 결과가 적어도 있는 대로 답해
+- "다시 물어봐줄 수 있어?" 같은 말 절대 하지 마
+- 검색 결과가 완전히 없을 때만 "못 찾겠어, 다른 키워드로 물어봐줘" 라고 해`
 
 export function buildSystemPrompt(ragChunks: Chunk[]): string {
   if (ragChunks.length === 0) return BASE_PROMPT
