@@ -36,6 +36,9 @@ export async function POST(request: Request) {
 
   // 5. Tool 실행
   const toolCall = firstChoice.tool_calls[0]
+  if (toolCall.type !== 'function') {
+    return Response.json({ reply: firstChoice.content })
+  }
   const toolArgs = JSON.parse(toolCall.function.arguments) as {
     query: string
     search_depth?: 'basic' | 'advanced'
