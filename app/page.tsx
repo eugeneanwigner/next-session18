@@ -1,65 +1,111 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useRef, useEffect } from 'react'
+
+type Message = { role: 'user' | 'assistant'; content: string }
 
 export default function Home() {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  async function send() {
+    const text = input.trim()
+    if (!text || loading) return
+
+    setInput('')
+    setMessages((prev) => [...prev, { role: 'user', content: text }])
+    setLoading(true)
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      })
+      const data = (await res.json()) as { reply: string }
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: data.reply ?? '오류가 발생했어요' },
+      ])
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: '서버 오류가 발생했어요' },
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="flex flex-col h-screen bg-black text-white">
+      <header className="border-b border-zinc-800 px-6 py-4">
+        <h1 className="text-lg font-semibold tracking-tight">TrendTok</h1>
+        <p className="text-xs text-zinc-500">틱톡 트렌드 마케팅 어시스턴트</p>
+      </header>
+
+      <main className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        {messages.length === 0 && (
+          <p className="text-zinc-600 text-sm text-center mt-20">
+            틱톡 마케팅에 대해 물어봐요
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        )}
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+            <div
+              className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap leading-relaxed ${
+                msg.role === 'user'
+                  ? 'bg-white text-black'
+                  : 'bg-zinc-900 text-white border border-zinc-800'
+              }`}
+            >
+              {msg.content}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-zinc-500">
+              ...
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
       </main>
+
+      <footer className="border-t border-zinc-800 px-6 py-4">
+        <div className="flex gap-3 items-end">
+          <textarea
+            className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-zinc-600 placeholder:text-zinc-600"
+            placeholder="틱톡 마케팅 질문을 입력하세요"
+            rows={1}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                send()
+              }
+            }}
+          />
+          <button
+            onClick={send}
+            disabled={loading || !input.trim()}
+            className="bg-white text-black rounded-xl px-5 py-3 text-sm font-medium disabled:opacity-30 hover:bg-zinc-200 transition-colors"
+          >
+            전송
+          </button>
+        </div>
+      </footer>
     </div>
-  );
+  )
 }
