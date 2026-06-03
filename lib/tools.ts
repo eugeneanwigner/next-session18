@@ -83,8 +83,7 @@ export async function executeTool(
   const dateSuffix = `${year} ${month} week`
 
   // 쿼리에 tiktok/틱톡 맥락이 없으면 강제로 붙임
-  const hasTiktokContext = /tiktok|틱톡|meme|밈|챌린지|challenge|trend|트렌드|viral/i.test(args.query)
-  const contextualQuery = hasTiktokContext ? args.query : `tiktok rage bait cringe funny viral meme ${args.query}`
+  const contextualQuery = `tiktok viral meme trend ${args.query}`
   const tiktokQuery = contextualQuery.includes(String(year))
     ? contextualQuery
     : `${contextualQuery} ${dateSuffix}`
