@@ -81,9 +81,13 @@ export async function executeTool(
   const year = now.getFullYear()
   const month = now.toLocaleString('en-US', { month: 'long' }).toLowerCase()
   const dateSuffix = `${year} ${month} week`
-  const tiktokQuery = args.query.includes(String(year))
-    ? args.query
-    : `${args.query} ${dateSuffix}`
+
+  // 쿼리에 tiktok/틱톡 맥락이 없으면 강제로 붙임
+  const hasTiktokContext = /tiktok|틱톡|meme|밈|챌린지|challenge|trend|트렌드|viral/i.test(args.query)
+  const contextualQuery = hasTiktokContext ? args.query : `tiktok meme trend ${args.query}`
+  const tiktokQuery = contextualQuery.includes(String(year))
+    ? contextualQuery
+    : `${contextualQuery} ${dateSuffix}`
   const douyinQuery = toDouyinQuery(tiktokQuery)
   const depth = args.search_depth ?? 'basic'
   const days = args.days ?? 30
