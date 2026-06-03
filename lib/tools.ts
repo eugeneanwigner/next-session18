@@ -77,13 +77,16 @@ export async function executeTool(
 ): Promise<string> {
   if (name !== 'search_tiktok_trends') return '알 수 없는 tool입니다'
 
-  const year = new Date().getFullYear()
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.toLocaleString('en-US', { month: 'long' }).toLowerCase()
+  const dateSuffix = `${year} ${month} week`
   const tiktokQuery = args.query.includes(String(year))
     ? args.query
-    : `${args.query} ${year}`
+    : `${args.query} ${dateSuffix}`
   const douyinQuery = toDouyinQuery(tiktokQuery)
   const depth = args.search_depth ?? 'basic'
-  const days = args.days ?? 7
+  const days = args.days ?? 30
 
   try {
     const [tiktokResults, douyinResults] = await Promise.all([
